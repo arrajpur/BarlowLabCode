@@ -1,0 +1,5 @@
+In file included from sflbits.c:16:
+prelude.h:652:5: error: #error "No definitions for PATH constants"
+In file included from sflbits.c:16:
+prelude.h:679: error: conflicting types for ‘uid_t’
+/usr/include/sys/signal.h:178: error: previous declaration of ‘uid_t’ was here

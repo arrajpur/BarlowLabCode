@@ -1,0 +1,180 @@
+================================================================================
+    PeakSplitter Overview 
+================================================================================
+
+////////////////////////////////////////////////////////////////////////////////
+INTRODUCTION
+////////////////////////////////////////////////////////////////////////////////
+
+With the development of new sequencing techniques, chromatin immunoprecipitation
+followed by high throughput sequencing (ChIP-Seq) is quickly becoming the method
+to study protein-DNA interactions on a genome-wide manner.
+In the process of identifying regions where proteins are bound to the DNA (peaks),
+peak calling programs tend to merge significant overlapping enrichment areas,
+leading to wider peaks often containing more than one binding site.
+PeakSplitter can be easily used for splitting ChIP-SEQ enrichment areas
+into individual binding sites.
+
+////////////////////////////////////////////////////////////////////////////////
+INSTALLATION
+////////////////////////////////////////////////////////////////////////////////
+
+Please check the following instructions to complete your installation.
+
+* Install from source
+PeakSplitter uses external libraries
+1. The iMatix SFL, Copyright © 1991-2000 iMatix Corporation <http://www.imatix.com>
+2. zlib - Copyright (C) 1995-2005 Jean-loup Gailly and Mark Adler
+3.tclap - Copyright © 2003,2004,2005,2006,2009 Michael E. Smoot
+
+zlib and SFL libraries have to be compiled before installing PeakSplitter.
+
+1. Open up a command terminal, go to the directory "PeakSplitter_v1" where you have uncompressed PeakSplitter.
+
+2. Within this directory, go to "SFL/Release" directory and run the makefile using 
+make (or make -f makefile)
+
+3. Return to the directory "PeakSplitter_v1", then go to the "Zlib/Release" directory and run the makefile
+make (or make -f makefile)
+
+4. Now you are ready to install PeakSplitter. Return to the directory "PeakSplitter_v1", and run the makefile
+make (or make -f makefile)
+An executable file named "PeakSplitter" will be generated in this folder.
+
+To run the program type ./PeakSplitter, and ./PeakSplitter --help in order to get some help on the input parameters.
+
+You can move the "PeakSplitter" exe file to anywhere on your file system and set the PATH to this folder.
+
+
+////////////////////////////////////////////////////////////////////////////////
+USAGE
+////////////////////////////////////////////////////////////////////////////////
+
+Usage: PeakSplitter <-p peakfile> <-w wig file/folder> <-o output folder> [options]
+
+Options:
+
+   --version
+     Displays version information and exits.
+
+   -h,  --help
+     Displays usage information and exits.
+
+   -p <string>,  --peakFile <string>
+     (required)  input peak file
+
+   -w <string>,  --wigFile <string>
+     (required)  input wig file or folder
+
+   -o <string>,  --outDir <string>
+     (required)  output folder
+
+   -c <int>,  --cutoff <int>
+     height cutoff (default 5)
+
+   -v <float>,  --valley <float>
+     float value to determine the valley depth required for peak separation
+     (default 0.6)
+
+    -f,  --fetch
+     whether to fetch subpeaks sequences or not (default true)
+
+    -u <string>,  --url <string>
+     Das url where to get sequences from (default is for human
+     "http://www.ensembl.org/das/Homo_sapiens.GRCh37.reference")
+    
+    -n <int>,  --numSeq <int>
+     number of best peak sequences to fetch (default 300)
+
+    -l <int>,  --length <int>
+     length of sequence to fetch (default 60)
+
+
+*** -p/ --peakFile 
+This is a REQUIRED parameter for PeakSplitter. 
+The file lists the genomic coordinates that were found by a peak calling program 
+or obtained in some other way. The format should be tab/space delimited, 
+where each locus is described by its "chromosome", "start" and "end" location.
+This file should be sorted by chromosome and start position.
+PLEASE REMOVE ANY HEADER LINES FROM THE FILE IF THESE ARE PRESENT
+
+*** -w/--wigFile
+This is a REQUIRED parameter for PeakSplitter.
+This can be a wig file OR a wig folder that contains one wig file for each chromosome,
+where the wig file describes the signals (usually number of tags) along the genome and
+are created by the peak calling program that generated the peak file.
+PeakSplitter supports wig files in VariableStep or Bedgraph formats.
+The wig header lines, "track type" and "variableStep"(when the file is of VariableStep format)
+are required.
+The files can be zipped or gzipped, so it's not necessary to uncompress them.
+
+wig file name for each chromosme (under wig folder) should contain the
+word "chr" +  chromosome number, for example "my.chr12.wig".
+
+*** -o/--outDir                                         
+This is a REQUIRED parameter for PeakSplitter.
+An output directory must be specified for PeakSplitter to put the output files in.
+
+*** -x/--prefix
+string to add to output file names, in case for example the same peak
+files are analyzed using different parameters.
+
+*** -c/--cutoff
+Height cutoff (default 5). Only subpeaks with at least this number of tags in
+their summit region will be reported.
+
+*** -v/--valley
+Float value to determine the valley depth required for peak separation (default 0.6).
+Local maxima regions are found within each peak and the height of neighboring local maxima are compared.
+The lowest value is multiplied by the valley float number to yield the minimum depth
+required to separate the two peaks.
+For example, value of 0.5 means that the height of the valley should be less than
+half the height of its summits in order for them to be separated.
+
+*** -f/--fetch
+By default, PeakSplitter will fetch the subpeak sequences near their summit region.
+In order to turn this feature off use this flag
+-f 
+
+*** -u/--url
+The sequences are fetched directly from the DAS Ensembl database.
+The user has to specify the DAS url for the organism of interest.
+The DAS url for human database is "http://www.ensembl.org/das/Homo_sapiens.GRCh37.reference",
+and urls for other organisms can be found at: "http://www.ensembl.org/das/dsn"
+Currently, the archive DAS web site is not supported, so one can fetch sequences only
+from the latest build.
+
+*** -n/--numSeq
+Number of best subpeak sequences to fetch (those with the highest number of tags in their summit region).
+These sequences can be used as input for motif-prediction tools such as MEME.
+The default number is 300. You can not upload more than 300 sequences to MEME unless you run it locally.
+
+*** -l/--length
+Length of sequence to fetch (default 60)
+The sequences are fetched near the summit region.
+For example, If the length is 60, 30 bp up- and 30 downstream of the summit will be fetched.
+The total fetched sequence length will be 61.
+
+////////////////////////////////////////////////////////////////////////////////
+OUTPUT FILES
+////////////////////////////////////////////////////////////////////////////////
+
+1. peakFileName.subpeaks.inputFileNameSuffix
+For example, if the input peak file is "myPeaks.test",
+the output file will be "myPeaks.subpeaks.test"
+
+This is a tabular file which contains information about subpeaks,
+including:
+a. Chromosome name
+b. Start position of the subpeak
+c. End position of the subpeak
+d. Number of tags in the peak summit position
+e. Subpeak summit position relative to the start position of the subpeak region.
+
+2. peakFileName(without suffix).bestSubpeaks.fa
+For example, if the input peak file is "myPeaks.test",
+the output file will be "myPeaks.bestSubpeaks.fa
+
+This is a fasta file, containing the sequences of the best subpeaks
+(those with highest number of tags in their summit position).
+
